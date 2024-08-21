@@ -1,0 +1,15 @@
+yfinance==0.2.41
+pandas==2.2.2
+matplotlib==3.9.1
+numpy
+scikit-learn==1.5.1
+backtesting==0.3.3
+bokeh==2.4.3
+pip==24.1.2
+holidays
+polygon-api-client
+scipy
+openpyxl
+psutil
+tqdm
+cupy
