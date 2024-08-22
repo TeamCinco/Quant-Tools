@@ -64,18 +64,26 @@ def analyze_paths_within_std(simulations, current_price, daily_std, weekly_std, 
     
     return path_analysis
 
-def calculate_std_deviations(data):
+def calculate_population_stats(data):
     data['Daily_Price_Difference'] = data['Close'] - data['Open']
     data['Weekly_Price_Difference'] = data['Close'] - data['Open'].shift(4)
     data['Monthly_Price_Difference'] = data['Close'] - data['Open'].shift(19)
 
-    daily_std = np.std(data['Daily_Price_Difference'])
-    weekly_std = np.std(data['Weekly_Price_Difference'].dropna())
-    monthly_std = np.std(data['Monthly_Price_Difference'].dropna())
+    daily_mean = np.mean(data['Daily_Price_Difference'])
+    weekly_mean = np.mean(data['Weekly_Price_Difference'].dropna())
+    monthly_mean = np.mean(data['Monthly_Price_Difference'].dropna())
 
-    return daily_std, weekly_std, monthly_std
+    daily_var = np.var(data['Daily_Price_Difference'], ddof=0)
+    weekly_var = np.var(data['Weekly_Price_Difference'].dropna(), ddof=0)
+    monthly_var = np.var(data['Monthly_Price_Difference'].dropna(), ddof=0)
 
-def plot_std_distribution(stock_data, std_value, label, stock_ticker):
+    daily_std = np.sqrt(daily_var)
+    weekly_std = np.sqrt(weekly_var)
+    monthly_std = np.sqrt(monthly_var)
+
+    return daily_mean, weekly_mean, monthly_mean, daily_std, weekly_std, monthly_std
+
+def plot_std_distribution(stock_data, mean_value, std_value, label, stock_ticker):
     mean_price = stock_data['Close'].iloc[-1]
     
     std_prices = {
@@ -89,9 +97,8 @@ def plot_std_distribution(stock_data, std_value, label, stock_ticker):
     price_differences = stock_data['Close'].diff().dropna()
     hist_data = plt.hist(price_differences, bins=50, color='blue', alpha=0.5, density=True, label=f'{label} Price Difference')
     
-    mu, sigma = stats.norm.fit(price_differences)
     x = np.linspace(price_differences.min(), price_differences.max(), 100)
-    p = stats.norm.pdf(x, mu, sigma)
+    p = stats.norm.pdf(x, mean_value, std_value)
     plt.plot(x, p, 'k', linewidth=2, label='Normal Distribution Fit')
     
     plt.title(f'Normal Distribution Fit for {label} Price Differences of {stock_ticker}')
@@ -101,15 +108,15 @@ def plot_std_distribution(stock_data, std_value, label, stock_ticker):
     for i, color in zip(range(1, 4), ['green', 'yellow', 'orange']):
         std_price_plus = mean_price + i * std_value
         std_price_minus = mean_price - i * std_value
-        plt.axvline(i * std_value, color=color, linestyle='dashed', linewidth=2, label=f'+{i} STD ({std_price_plus:.2f})')
-        plt.axvline(-i * std_value, color=color, linestyle='dashed', linewidth=2, label=f'-{i} STD ({std_price_minus:.2f})')
-        plt.text(i * std_value, plt.ylim()[1] * (0.9 - 0.1 * i), f'{std_price_plus:.2f}', horizontalalignment='right', color=color)
-        plt.text(-i * std_value, plt.ylim()[1] * (0.9 - 0.1 * i), f'{std_price_minus:.2f}', horizontalalignment='left', color=color)
+        plt.axvline(mean_value + i * std_value, color=color, linestyle='dashed', linewidth=2, label=f'+{i} STD ({std_price_plus:.2f})')
+        plt.axvline(mean_value - i * std_value, color=color, linestyle='dashed', linewidth=2, label=f'-{i} STD ({std_price_minus:.2f})')
+        plt.text(mean_value + i * std_value, plt.ylim()[1] * (0.9 - 0.1 * i), f'{std_price_plus:.2f}', horizontalalignment='right', color=color)
+        plt.text(mean_value - i * std_value, plt.ylim()[1] * (0.9 - 0.1 * i), f'{std_price_minus:.2f}', horizontalalignment='left', color=color)
     
-    plt.axvline(0, color='red', linestyle='dashed', linewidth=2, label=f'Mean ({mean_price:.2f})')
-    plt.text(0, plt.ylim()[1] * 0.95, f'{mean_price:.2f}', horizontalalignment='center', color='red')
+    plt.axvline(mean_value, color='red', linestyle='dashed', linewidth=2, label=f'Mean ({mean_price:.2f})')
+    plt.text(mean_value, plt.ylim()[1] * 0.95, f'{mean_price:.2f}', horizontalalignment='center', color='red')
     
-    plt.xlim(-3 * std_value, 3 * std_value)
+    plt.xlim(mean_value - 3 * std_value, mean_value + 3 * std_value)
     
     plt.grid(True, linestyle='--', alpha=0.7)
     
@@ -156,7 +163,7 @@ def main():
     stock_original = denormalize_and_delog(stock_normalized, stock_log)
     macro_original = denormalize_and_delog(macro_normalized, macro_log)
     
-    daily_std, weekly_std, monthly_std = calculate_std_deviations(stock_data)
+    daily_mean, weekly_mean, monthly_mean, daily_std, weekly_std, monthly_std = calculate_population_stats(stock_data)
     
     current_price = stock_original.iloc[-1]
     
@@ -171,7 +178,7 @@ def main():
     path_analysis = analyze_paths_within_std(mc_sims_result, current_price, daily_std, weekly_std, monthly_std, selected_stds)
     
     filtered_paths = {}
-    for sim, labels in path_analysis[:100000]:  # Limit to 1000 paths
+    for sim, labels in path_analysis[:100000]:  # Limit to 100000 paths
         filtered_paths[f"Path {sim+1}"] = mc_sims_result[:, sim]
     
     if filtered_paths:
@@ -190,17 +197,16 @@ def main():
 
     # Visualization of Monte Carlo Simulation
     plt.figure(figsize=(10, 5))
-    plt.plot(mc_sims_result[:, :100])  # Plot only 1000 paths
+    plt.plot(mc_sims_result[:, :100])  # Plot only 100 paths
     plt.ylabel(f'{stock_ticker} Price ($)')
     plt.xlabel('Days')
     plt.title(f'MC simulation of {stock_ticker} over {prediction_period} days')
     plt.show()
     
     # Show Daily, Weekly, and Monthly STD Charts with Stock Prices
-    plot_std_distribution(stock_data, daily_std, 'Daily', stock_ticker)
-    plot_std_distribution(stock_data.resample('W').last(), weekly_std, 'Weekly', stock_ticker)
-    plot_std_distribution(stock_data.resample('M').last(), monthly_std, 'Monthly', stock_ticker)
+    plot_std_distribution(stock_data, daily_mean, daily_std, 'Daily', stock_ticker)
+    plot_std_distribution(stock_data.resample('W').last(), weekly_mean, weekly_std, 'Weekly', stock_ticker)
+    plot_std_distribution(stock_data.resample('M').last(), monthly_mean, monthly_std, 'Monthly', stock_ticker)
 
 if __name__ == "__main__":
     main()
-

@@ -13,3 +13,4 @@ openpyxl
 psutil
 tqdm
 cupy
+pandas_market_calendars
