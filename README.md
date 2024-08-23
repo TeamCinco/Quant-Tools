@@ -11,7 +11,7 @@ Some of these scripts generate graphs and statistics, offering visual insights i
 ## Here are some ideas on how to use these codes...
 If you're here, you're likely interested in the stock market. Great! The stock market is a dynamic environment full of opportunities, but it can also be complex and unpredictable.
 
-These tools can help you:
+## These tools can help you:
 
 Understand Market Trends: Visualize data to spot patterns, trends, and potential signals.
 Evaluate Investment Strategies: Use backtesting models to test different strategies and see how they would have performed in the past.
