@@ -108,7 +108,7 @@ Tools for analyzing the historical performance of stocks, including standard dev
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/Quant-Tools.git
+   git clone https://github.com/aTeamCinco/Quant-Tools.git
    cd Quant-Tools
    ```
 
