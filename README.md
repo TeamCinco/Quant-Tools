@@ -1,198 +1,222 @@
 # Quant-Tools
 
-A comprehensive collection of quantitative analysis and trading tools for financial markets.
+## Overview
+
+Quant-Tools is a comprehensive suite of tools designed for quantitative analysis, backtesting strategies, options analysis, macroeconomic analysis, and more. This repository is structured to help traders, investors, and analysts perform advanced financial modeling and testing with Python.
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Modules](#modules)
-  - [RSI Crossover](#rsi-crossover)
-  - [Dollar Mean Reversion Backtesting](#dollar-mean-reversion-backtesting)
-  - [Macro Economic Analysis Tools](#macro-economic-analysis-tools)
-  - [Options Stats Tools](#options-stats-tools)
-  - [Monte Carlo Simulation](#monte-carlo-simulation)
-  - [Stock Performance Analysis](#stock-performance-analysis)
-  - [Financial Metric Compare and Visuals](#financial-metric-compare-and-visuals)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Introduction
-
-Quant-Tools is a powerful suite of Python-based tools designed for quantitative analysis, backtesting, and visualization of financial market data. This project aims to provide traders, analysts, and researchers with a comprehensive set of tools to analyze stocks, options, and macroeconomic indicators.
+1. [Installation](#installation)
+2. [Project Structure](#project-structure)
+3. [Features](#features)
+    - [RSI Crossover Strategies](#rsi-crossover-strategies)
+    - [Dollar Mean Reversion Strategies](#dollar-mean-reversion-strategies)
+    - [Options Analysis](#options-analysis)
+    - [Monte Carlo Simulation](#monte-carlo-simulation)
+    - [Macroeconomic Analysis](#macroeconomic-analysis)
+    - [Stock Performance Analysis](#stock-performance-analysis)
+4. [Usage](#usage)
+5. [Backtesting Tools](#backtesting-tools)
+6. [Macro Economic Analysis Tools](#macro-economic-analysis-tools)
+7. [Options Stats Tools](#options-stats-tools)
+8. [Monte Carlo Simulation Tools](#monte-carlo-simulation-tools)
+9. [Stock Performance Tools](#stock-performance-tools)
+10. [Financial Metric Compare and Visuals](#financial-metric-compare-and-visuals)
+11. [Contributing](#contributing)
+12. [License](#license)
 
 ## Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/your-username/Quant-Tools.git
-   ```
+### Prerequisites
 
-2. Navigate to the project directory:
-   ```
-   cd Quant-Tools
-   ```
+Ensure that you have the following installed on your machine:
 
-3. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Dependencies
+
+This project requires several Python packages. Install them using the `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Additional Dependencies
+
+Depending on your environment and use case, you may need additional libraries for GPU acceleration (e.g., CuPy). Ensure your environment is correctly configured if using these features.
+
+### CUDA Setup (Optional)
+
+If you plan to use GPU acceleration with CuPy, ensure you have a compatible CUDA version installed.
 
 ## Project Structure
 
-The project is organized into several main folders, each containing specific tools and functionalities:
+The project is organized as follows:
 
-- `RSI_Crossover/`
-- `Dollar_Mean_Reversion_Backtesting/`
-- `Macro_Economic_Analysis_Tools/`
-- `Options_Stats_Tools/`
-- `Monte_Carlo_Simulation/`
-- `Stock_Performance_Analysis/`
-- `Financial_Metric_Compare_and_Visuals/`
+```
+Quant-Tools/
+├── Backtesting Tools/
+│   ├── RSI crossover/
+│   ├── Dollar Mean Reversion/
+│   ├── Outlier Analysis/
+│   ├── Realistic backtesting external variables/
+│   └── Return Analysis/
+├── Monte Carlo Simulation/
+├── Macro Economic Analysis Tools/
+├── Options Stats Tools/
+├── Stock Performance Tools/
+├── Financial Metric Compare and Visuals/
+├── README.md
+└── requirements.txt
+```
 
-## Modules
+## Features
 
-### RSI Crossover
+### RSI Crossover Strategies
 
-This module implements a Mean Reversion RSI Strategy for stock analysis.
+This folder contains various strategies that utilize the Relative Strength Index (RSI) for mean reversion. It includes:
 
-#### Features:
-- Downloads historical data for a specified stock and the S&P 500
-- Implements and backtests the Mean Reversion RSI Strategy
-- Compares strategy performance to a buy-and-hold approach
-- Generates plots of backtest results and RSI
+- Basic RSI crossover strategy.
+- Strategies with additional conditions like stop-loss rules.
+- Strategies that store trade data for further analysis.
 
-#### Usage:
-1. Run the script and enter the required inputs:
-   - Ticker symbol of the stock to analyze
-   - Variable to analyze (e.g., DAAA for Federal Funds Rate)
-   - Start date for the analysis (YYYY-MM-DD format)
+### Dollar Mean Reversion Strategies
 
-2. The script will process the data and generate output including:
-   - Strategy performance metrics
-   - Comparison with buy-and-hold returns
-   - Linear regression analysis of the stock vs. the specified variable
-   - Plots of backtest results, RSI, and outliers
+These strategies are based on mean reversion principles, focusing on price movements within a specified dollar range. The strategies work well for different market conditions and include features like customizable time frames and stop-loss levels.
 
-### Dollar Mean Reversion Backtesting
+### Options Analysis
 
-This module implements and backtests a Dollar Range Strategy on historical SPY data.
-
-#### Features:
-- Downloads historical SPY data from 2000 to the present
-- Implements a Dollar Range Strategy
-- Backtests the strategy and compares it to a buy-and-hold approach
-
-#### Usage:
-1. Run the script (no user input required)
-2. The script will process the data and output:
-   - Strategy performance metrics
-   - Comparison with buy-and-hold returns
-   - A plot of the backtest results
-
-### Macro Economic Analysis Tools
-
-This module analyzes the relationship between stock prices and macroeconomic indicators.
-
-#### Features:
-- Fetches data for both stocks and macroeconomic indicators
-- Performs linear regression analysis
-- Generates scatter plots with regression lines
-
-#### Usage:
-1. Run the script and enter the required inputs:
-   - FRED symbol for the macroeconomic indicator
-   - Stock symbol
-   - Number of years to analyze
-   - Choose the independent variable (FRED or Stock)
-
-2. The script will output:
-   - Linear regression results (slope, intercept, R-squared, p-value)
-   - A scatter plot showing the relationship between the stock and the macroeconomic indicator
-
-### Options Stats Tools
-
-This module analyzes and visualizes options data for a given stock.
-
-#### Features:
-- Fetches available expiration dates for a stock's options
-- Generates implied volatility surfaces for calls and puts
-- Plots the stock price for the past 6 months
-
-#### Usage:
-1. Run the script and enter a ticker symbol
-2. The script will:
-   - Fetch available expiration dates
-   - Prompt you to select a range of expiration dates
-   - Generate and display visualizations
+Tools for analyzing options data, including implied volatility surfaces and plotting tools. Useful for options traders looking to visualize market conditions and make informed decisions.
 
 ### Monte Carlo Simulation
 
-This module performs Monte Carlo simulations for stock price prediction.
+A set of tools for running Monte Carlo simulations on stock prices, accounting for various statistical factors. These tools help forecast potential future price movements and assess risk.
 
-#### Features:
-- Fetches historical stock and macroeconomic data
-- Performs regression analysis
-- Runs Monte Carlo simulations
-- Generates statistical analyses and plots
+### Macroeconomic Analysis
 
-#### Usage:
-1. Run the script and enter the required inputs:
-   - Stock ticker symbol
-   - FRED macroeconomic indicator ticker
-   - Number of days to predict (minimum 5)
-   - Select which standard deviations to include in the analysis
-
-2. The script will output:
-   - Regression results
-   - Monte Carlo simulation plots
-   - Standard deviation charts for daily, weekly, and monthly price changes
-   - Excel or CSV file with filtered Monte Carlo paths
+Scripts designed to analyze the relationship between macroeconomic indicators (e.g., interest rates, GDP) and stock prices. This is useful for understanding how economic variables impact market behavior.
 
 ### Stock Performance Analysis
 
-This module analyzes the historical price performance and volatility of a stock.
-
-#### Features:
-- Downloads historical stock data
-- Calculates daily price changes and bins them
-- Generates frequency tables and plots
-- Calculates and plots standard deviations for daily, weekly, and monthly price changes
-
-#### Usage:
-1. Run the script and enter the ticker symbol
-2. The script will output:
-   - Frequency table of daily price changes
-   - Histogram of daily price changes
-   - Normal distribution fits for daily, weekly, and monthly price changes
-   - Plots showing price levels at different standard deviations
-
-### Financial Metric Compare and Visuals
-
-This module visualizes and compares various financial metrics of a company over time.
-
-#### Features:
-- Fetches financial data (income statement, balance sheet, cash flow)
-- Displays available financial metrics
-- Visualizes selected metrics over time
-
-#### Usage:
-1. Run the script and enter the required inputs:
-   - Ticker symbol
-   - Statement period (annual or quarterly)
-2. Select metrics for visualization
-3. The script will generate line plots of selected financial metrics over time
+Tools for analyzing the historical performance of stocks, including standard deviation calculations, distribution fits, and visualizations. Ideal for understanding past price behavior and predicting future volatility.
 
 ## Usage
 
-Each module can be run independently. Navigate to the respective folder and run the Python script for the desired analysis.
+### Running Scripts
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/Quant-Tools.git
+   cd Quant-Tools
+   ```
+
+2. **Install the required dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run individual scripts:**
+
+   Navigate to the desired folder and execute the script:
+
+   ```bash
+   python <script_name>.py
+   ```
+
+### Configuring Parameters
+
+Most scripts require user inputs such as ticker symbols, date ranges, and other parameters. Follow the on-screen prompts to enter the required data.
+
+## Backtesting Tools
+
+### Overview
+
+The Backtesting Tools folder contains several subfolders for different strategies:
+
+- **RSI Crossover:** Implements RSI-based mean reversion strategies.
+- **Dollar Mean Reversion:** Tests strategies that rely on price movements within a fixed dollar range.
+- **Outlier Analysis:** Identifies and analyzes outliers in price data.
+- **Realistic Backtesting with External Variables:** Incorporates external macroeconomic factors into backtesting.
+- **Return Analysis:** Extracts and analyzes returns from various backtesting scenarios.
+
+### How to Use
+
+1. Choose the appropriate script based on your analysis needs.
+2. Run the script and provide the necessary inputs (tickers, dates, variables).
+3. Review the output, which includes performance metrics, plots, and statistical analyses.
+
+## Macro Economic Analysis Tools
+
+### Overview
+
+Tools designed to analyze the relationship between macroeconomic variables and stock prices. Useful for understanding how factors like interest rates affect stock performance.
+
+### How to Use
+
+1. Run the script and enter the required inputs (ticker, macroeconomic variable).
+2. The script fetches data, performs linear regression, and generates scatter plots and statistical summaries.
+
+## Options Stats Tools
+
+### Overview
+
+Scripts for options analysis, including implied volatility surface plots. These tools help traders visualize volatility across different strike prices and expiration dates.
+
+### How to Use
+
+1. Run the script and enter the ticker symbol.
+2. Select the expiration dates and other preferences.
+3. The script generates 3D volatility surfaces and stock price charts.
+
+## Monte Carlo Simulation Tools
+
+### Overview
+
+Tools to perform Monte Carlo simulations on stock prices, using historical data to model future price movements. Includes functionality for regression analysis and probability assessments.
+
+### How to Use
+
+1. Run the script and enter the required inputs (ticker, days to predict, standard deviations).
+2. Review the output, which includes simulation plots, confidence intervals, and statistical summaries.
+
+## Stock Performance Tools
+
+### Overview
+
+Tools to analyze historical stock performance, including standard deviation calculations, frequency distributions, and normal distribution fits.
+
+### How to Use
+
+1. Run the script and enter the ticker symbol.
+2. The script generates frequency tables, histograms, and distribution fits.
+3. Use the output to assess historical volatility and price behavior.
+
+## Financial Metric Compare and Visuals
+
+### Overview
+
+Scripts for comparing and visualizing financial metrics from company reports (income statement, balance sheet, cash flow). These tools are essential for fundamental analysis.
+
+### How to Use
+
+1. Run the script and enter the ticker symbol and statement period (annual or quarterly).
+2. Select the financial metrics to visualize.
+3. The script generates line plots of the selected metrics over time.
 
 ## Contributing
 
-Contributions to Quant-Tools are welcome! Please feel free to submit a Pull Request.
+We welcome contributions from the community! If you have suggestions or improvements, feel free to open an issue or submit a pull request.
+
+### Guidelines
+
+- Ensure your code adheres to PEP 8 standards.
+- Write clear and concise comments.
+- Test your code before submitting.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
