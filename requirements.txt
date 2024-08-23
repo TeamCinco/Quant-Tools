@@ -14,3 +14,10 @@ psutil
 tqdm
 cupy
 pandas_market_calendars
+pandas_datareader
+seaborn
+mpl_toolkits
+statsmodels
+beautifulsoup4
+flask
+requests

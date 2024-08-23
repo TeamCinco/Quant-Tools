@@ -1,148 +1,198 @@
-Certainly! I'll reformat the explanation using Markdown syntax with hashtags for headers/titles. Here's the revised version for the README:
-
 # Quant-Tools
 
-## RSI Crossover Folder
+A comprehensive collection of quantitative analysis and trading tools for financial markets.
 
-### How to Use:
+## Table of Contents
 
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Modules](#modules)
+  - [RSI Crossover](#rsi-crossover)
+  - [Dollar Mean Reversion Backtesting](#dollar-mean-reversion-backtesting)
+  - [Macro Economic Analysis Tools](#macro-economic-analysis-tools)
+  - [Options Stats Tools](#options-stats-tools)
+  - [Monte Carlo Simulation](#monte-carlo-simulation)
+  - [Stock Performance Analysis](#stock-performance-analysis)
+  - [Financial Metric Compare and Visuals](#financial-metric-compare-and-visuals)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+Quant-Tools is a powerful suite of Python-based tools designed for quantitative analysis, backtesting, and visualization of financial market data. This project aims to provide traders, analysts, and researchers with a comprehensive set of tools to analyze stocks, options, and macroeconomic indicators.
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/Quant-Tools.git
+   ```
+
+2. Navigate to the project directory:
+   ```
+   cd Quant-Tools
+   ```
+
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+## Project Structure
+
+The project is organized into several main folders, each containing specific tools and functionalities:
+
+- `RSI_Crossover/`
+- `Dollar_Mean_Reversion_Backtesting/`
+- `Macro_Economic_Analysis_Tools/`
+- `Options_Stats_Tools/`
+- `Monte_Carlo_Simulation/`
+- `Stock_Performance_Analysis/`
+- `Financial_Metric_Compare_and_Visuals/`
+
+## Modules
+
+### RSI Crossover
+
+This module implements a Mean Reversion RSI Strategy for stock analysis.
+
+#### Features:
+- Downloads historical data for a specified stock and the S&P 500
+- Implements and backtests the Mean Reversion RSI Strategy
+- Compares strategy performance to a buy-and-hold approach
+- Generates plots of backtest results and RSI
+
+#### Usage:
 1. Run the script and enter the required inputs:
-   - Ticker symbol of the stock you want to analyze
+   - Ticker symbol of the stock to analyze
    - Variable to analyze (e.g., DAAA for Federal Funds Rate)
    - Start date for the analysis (YYYY-MM-DD format)
 
-2. The script will:
-   - Download historical data for the specified stock and the S&P 500 (SPY)
-   - Implement a Mean Reversion RSI Strategy
-   - Backtest the strategy and compare it to a buy-and-hold approach
-   - Generate plots of the backtest results and RSI
-
-3. Output includes:
+2. The script will process the data and generate output including:
    - Strategy performance metrics
    - Comparison with buy-and-hold returns
    - Linear regression analysis of the stock vs. the specified variable
-   - Identification of outliers (days with significant price changes)
-   - Plots of the backtest results, RSI, and outliers
+   - Plots of backtest results, RSI, and outliers
 
-This tool is useful for traders looking to implement a mean reversion strategy based on RSI and analyze its performance against market benchmarks.
+### Dollar Mean Reversion Backtesting
 
-## Dollar Mean Reversion Backtesting Folder
+This module implements and backtests a Dollar Range Strategy on historical SPY data.
 
-### How to Use:
+#### Features:
+- Downloads historical SPY data from 2000 to the present
+- Implements a Dollar Range Strategy
+- Backtests the strategy and compares it to a buy-and-hold approach
 
+#### Usage:
 1. Run the script (no user input required)
-
-2. The script will:
-   - Download historical SPY data from 2000 to the present
-   - Implement a Dollar Range Strategy
-   - Backtest the strategy and compare it to a buy-and-hold approach
-
-3. Output includes:
+2. The script will process the data and output:
    - Strategy performance metrics
    - Comparison with buy-and-hold returns
    - A plot of the backtest results
 
-This tool is useful for traders interested in testing a simple mean reversion strategy based on dollar ranges against the S&P 500.
+### Macro Economic Analysis Tools
 
-## Macro Economic Analysis Tools Folder
+This module analyzes the relationship between stock prices and macroeconomic indicators.
 
-### How to Use:
+#### Features:
+- Fetches data for both stocks and macroeconomic indicators
+- Performs linear regression analysis
+- Generates scatter plots with regression lines
 
+#### Usage:
 1. Run the script and enter the required inputs:
    - FRED symbol for the macroeconomic indicator
    - Stock symbol
    - Number of years to analyze
    - Choose the independent variable (FRED or Stock)
 
-2. The script will:
-   - Fetch data for both the stock and the macroeconomic indicator
-   - Perform linear regression analysis
-   - Generate a scatter plot with the regression line
-
-3. Output includes:
+2. The script will output:
    - Linear regression results (slope, intercept, R-squared, p-value)
    - A scatter plot showing the relationship between the stock and the macroeconomic indicator
 
-This tool is useful for investors looking to understand the relationship between stock prices and macroeconomic factors.
+### Options Stats Tools
 
-## Options Stats Tools Folder
+This module analyzes and visualizes options data for a given stock.
 
-### How to Use:
+#### Features:
+- Fetches available expiration dates for a stock's options
+- Generates implied volatility surfaces for calls and puts
+- Plots the stock price for the past 6 months
 
+#### Usage:
 1. Run the script and enter a ticker symbol
-
 2. The script will:
-   - Fetch available expiration dates for the stock's options
+   - Fetch available expiration dates
    - Prompt you to select a range of expiration dates
-   - Generate implied volatility surfaces for both calls and puts
-   - Plot the stock price for the past 6 months
+   - Generate and display visualizations
 
-3. Output includes:
-   - 3D plots of implied volatility surfaces for calls and puts
-   - A plot of the stock's price over the past 6 months
+### Monte Carlo Simulation
 
-This tool is useful for options traders to visualize implied volatility patterns and analyze options pricing across different strikes and expirations.
+This module performs Monte Carlo simulations for stock price prediction.
 
-## Monte Carlo Simulation Folder
+#### Features:
+- Fetches historical stock and macroeconomic data
+- Performs regression analysis
+- Runs Monte Carlo simulations
+- Generates statistical analyses and plots
 
-### How to Use:
-
+#### Usage:
 1. Run the script and enter the required inputs:
    - Stock ticker symbol
    - FRED macroeconomic indicator ticker
    - Number of days to predict (minimum 5)
    - Select which standard deviations to include in the analysis
 
-2. The script will:
-   - Fetch historical stock and macroeconomic data
-   - Perform regression analysis
-   - Run Monte Carlo simulations
-   - Generate various statistical analyses and plots
-
-3. Output includes:
+2. The script will output:
    - Regression results
    - Monte Carlo simulation plots
    - Standard deviation charts for daily, weekly, and monthly price changes
    - Excel or CSV file with filtered Monte Carlo paths
 
-This tool is useful for investors looking to model potential future stock price movements and analyze the probability of various outcomes.
+### Stock Performance Analysis
 
-## Stock Performance Folder
+This module analyzes the historical price performance and volatility of a stock.
 
-### How to Use:
+#### Features:
+- Downloads historical stock data
+- Calculates daily price changes and bins them
+- Generates frequency tables and plots
+- Calculates and plots standard deviations for daily, weekly, and monthly price changes
 
-1. Run the script and enter the required inputs:
-   - Ticker symbol
-
-2. The script will:
-   - Download historical stock data
-   - Calculate daily price changes and bin them
-   - Generate frequency tables and plots
-   - Calculate and plot standard deviations for daily, weekly, and monthly price changes
-
-3. Output includes:
+#### Usage:
+1. Run the script and enter the ticker symbol
+2. The script will output:
    - Frequency table of daily price changes
    - Histogram of daily price changes
    - Normal distribution fits for daily, weekly, and monthly price changes
    - Plots showing price levels at different standard deviations
 
-This tool is useful for analyzing the historical price performance and volatility of a stock.
+### Financial Metric Compare and Visuals
 
-## Financial Metric Compare and Visuals Folder
+This module visualizes and compares various financial metrics of a company over time.
 
-### How to Use:
+#### Features:
+- Fetches financial data (income statement, balance sheet, cash flow)
+- Displays available financial metrics
+- Visualizes selected metrics over time
 
+#### Usage:
 1. Run the script and enter the required inputs:
    - Ticker symbol
    - Statement period (annual or quarterly)
+2. Select metrics for visualization
+3. The script will generate line plots of selected financial metrics over time
 
-2. The script will:
-   - Fetch financial data (income statement, balance sheet, cash flow)
-   - Display available financial metrics
-   - Prompt you to select metrics for visualization
+## Usage
 
-3. Output includes:
-   - Line plots of selected financial metrics over time
-   - Dollar values formatted in billions or millions as appropriate
+Each module can be run independently. Navigate to the respective folder and run the Python script for the desired analysis.
 
-This tool is useful for visualizing and comparing various financial metrics of a company over time, helping investors analyze financial performance trends.
+## Contributing
+
+Contributions to Quant-Tools are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
