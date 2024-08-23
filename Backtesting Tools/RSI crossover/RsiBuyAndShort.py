@@ -20,10 +20,9 @@ spy_data = yf.download("SPY", start=start_date, end=end_date)
 variable_data = pdr.get_data_fred(user_variable, start=start_date, end=end_date)
 
 
-# Download user-specified variable data from FRED
-variable_data = pdr.get_data_fred(user_variable, start="2023-06-09", end=end_date)
 
-def calculate_rsi(close, window=14):
+
+def calculate_rsi(close, window=14):    
     delta = np.diff(close)
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)

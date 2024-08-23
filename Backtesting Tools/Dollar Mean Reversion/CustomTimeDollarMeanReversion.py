@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Download SPY data from 2000 to present
 end_date = datetime.now().strftime("%Y-%m-%d")
-spy_data = yf.download("SPY", start="2000-01-01", end=end_date)
+spy_data = yf.download("SPY", start="2024-01-01", end=end_date)
 
 class DollarRangeStrategy(Strategy):
     def init(self):
