@@ -12,14 +12,10 @@ user_ticker = input("Enter a ticker symbol: ")
 user_variable = input("Enter a variable to analyze (e.g., DAAA for Federal Funds Rate): ")
 start_date = input("Enter the start date (YYYY-MM-DD): ")
 
-
-# Download data for user-specified ticker and SPY from 2024 to present
+# Download data for user-specified ticker and SPY from start_date to present
 end_date = datetime.now().strftime("%Y-%m-%d")
 ticker_data = yf.download(user_ticker, start=start_date, end=end_date)
 variable_data = pdr.get_data_fred(user_variable, start=start_date, end=end_date)
-
-
-
 
 def calculate_rsi(close, window=14):    
     delta = np.diff(close)
@@ -29,44 +25,70 @@ def calculate_rsi(close, window=14):
     avg_loss = np.convolve(loss, np.ones(window), 'valid') / window
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-    # Pad the beginning with NaNs to match the original length
     return np.concatenate([np.full(window, np.nan), rsi])
 
+def calculate_roc(close, window=10):
+    return (close / np.roll(close, window) - 1) * 100
+
+def calculate_ema(close, window):
+    alpha = 2 / (window + 1)
+    ema = np.zeros_like(close)
+    ema[0] = close[0]
+    for i in range(1, len(close)):
+        ema[i] = alpha * close[i] + (1 - alpha) * ema[i-1]
+    return ema
+
 class MeanReversionRSIStrategy(Strategy):
-    window = 20
-    rsi_window = 14
-    rsi_overbought = 70
-    rsi_oversold = 30
-    
+    window = 10
+    rsi_window = 7
+    rsi_overbought = 65
+    rsi_oversold = 35
+    roc_window = 5
+    roc_threshold = 1.0
+    atr_window = 14
+    atr_multiplier = 2.0
+
     def init(self):
         close = self.data.Close
-        self.sma = self.I(lambda x: np.convolve(x, np.ones(self.window), 'same') / self.window, close)
+        high = self.data.High
+        low = self.data.Low
+        
+        self.ema = self.I(calculate_ema, close, self.window)
         self.rsi = self.I(calculate_rsi, close, self.rsi_window)
+        self.roc = self.I(calculate_roc, close, self.roc_window)
+        
+        tr = np.maximum(high - low, np.abs(high - np.roll(close, 1)), np.abs(low - np.roll(close, 1)))
+        self.atr = self.I(lambda x: np.convolve(x, np.ones(self.atr_window), 'same') / self.atr_window, tr)
+        
         self.entry_price = 0
+        self.trailing_stop = 0
 
     def next(self):
-        if np.isnan(self.sma[-1]) or np.isnan(self.rsi[-1]):
+        if np.isnan(self.ema[-1]) or np.isnan(self.rsi[-1]) or np.isnan(self.roc[-1]) or np.isnan(self.atr[-1]):
             return
 
         current_price = self.data.Close[-1]
         
+        if self.atr[-1] < self.data.Close[-1] * 0.001:
+            return
+        
         if not self.position:
-            if current_price < self.sma[-1] and self.rsi[-1] < self.rsi_oversold:
+            if current_price < self.ema[-1] and self.rsi[-1] < self.rsi_oversold and self.roc[-1] < -self.roc_threshold:
                 self.buy()
                 self.entry_price = current_price
-            elif current_price > self.sma[-1] and self.rsi[-1] > self.rsi_overbought:
+                self.trailing_stop = current_price - self.atr[-1] * self.atr_multiplier
+            elif current_price > self.ema[-1] and self.rsi[-1] > self.rsi_overbought and self.roc[-1] > self.roc_threshold:
                 self.sell()
                 self.entry_price = current_price
+                self.trailing_stop = current_price + self.atr[-1] * self.atr_multiplier
         else:
             if self.position.is_long:
-                if current_price > self.sma[-1] or self.rsi[-1] > self.rsi_overbought:
-                    self.position.close()
-                elif current_price <= self.entry_price * 0.5:  # 50% stop loss
+                self.trailing_stop = max(self.trailing_stop, current_price - self.atr[-1] * self.atr_multiplier)
+                if current_price <= self.trailing_stop or current_price > self.ema[-1] or self.rsi[-1] > self.rsi_overbought:
                     self.position.close()
             elif self.position.is_short:
-                if current_price < self.sma[-1] or self.rsi[-1] < self.rsi_oversold:
-                    self.position.close()
-                elif current_price >= self.entry_price * 1.5:  # 50% stop loss for short positions
+                self.trailing_stop = min(self.trailing_stop, current_price + self.atr[-1] * self.atr_multiplier)
+                if current_price >= self.trailing_stop or current_price < self.ema[-1] or self.rsi[-1] < self.rsi_oversold:
                     self.position.close()
 
 # Calculate RSI for the ticker data (for plotting purposes)
@@ -91,6 +113,7 @@ else:
 
 # Plot the results
 bt.plot()
+
 
 # Analyze the relationship between the user-specified ticker and variable
 merged_data = pd.merge(ticker_data, variable_data, left_index=True, right_index=True, how='inner')

@@ -6,15 +6,15 @@ from datetime import datetime
 
 # Download SPY data from 2000 to present
 end_date = datetime.now().strftime("%Y-%m-%d")
-spy_data = yf.download("SPY", start="2000-01-01", end=end_date)
+spy_data = yf.download("SPY", start="2024-07-01", end=end_date)
 
 class DollarRangeStrategy(Strategy):
     def init(self):
         self.daily_open = self.I(lambda: self.data.Open)
 
     def next(self):
-        lower_price = self.daily_open[-1] - 1
-        upper_price = self.daily_open[-1] + 1
+        lower_price = self.daily_open[-1] - 5
+        upper_price = self.daily_open[-1] + 5
         
         if self.position.is_long:
             if self.data.Close[-1] >= upper_price:
