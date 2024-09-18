@@ -14,7 +14,7 @@ def load_tickers(file_path):
 
 def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
-    hist = stock.history(period='3mo')  # Get data for the past month
+    hist = stock.history(period='6mo')  # Get data for the past 6 months
     if hist.empty:
         print(f"No data found for {ticker}; possibly delisted or no recent trading activity.")
         return None
@@ -69,10 +69,22 @@ def process_ticker(ticker, cik, size_filter):
             print(f"Invalid AROC calculated for {ticker}; skipping.")
             return None
 
+        # Get the start and end prices
+        start_price = hist['Close'].iloc[0]
+        end_price = hist['Close'].iloc[-1]
+
+        # Calculate percentage change from start day open to end day close
+        start_open_price = hist['Open'].iloc[0]
+        end_close_price = hist['Close'].iloc[-1]
+        pct_change = ((end_close_price - start_open_price) / start_open_price) * 100 if start_open_price != 0 else np.nan
+
         stock_data = {
             'Ticker': ticker,
             'Dates': hist.index.strftime('%Y-%m-%d').tolist(),
-            'AROC': aroc
+            'AROC': aroc,
+            'Start Price': start_price,
+            'End Price': end_price,
+            '% Change': pct_change
         }
 
         print(f"Processed {ticker} (CIK: {cik})")
@@ -144,13 +156,19 @@ def main():
         standardized_aroc = standardized_arocs[i]
         std_range = std_ranges[i]
         direction = directions[i]
+        pct_change = stock_data['% Change']
+        start_price = stock_data['Start Price']
+        end_price = stock_data['End Price']
 
         result = {
             'Ticker': ticker,
             'Dates': dates,
             'Standardized_AROC': standardized_aroc,
             'STD_Range': std_range,
-            'Direction': direction
+            'Direction': direction,
+            '% Change': pct_change,
+            'Start Price': start_price,
+            'End Price': end_price
         }
         results_list.append(result)
 
