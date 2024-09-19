@@ -105,6 +105,14 @@ Tools for analyzing the historical performance of stocks, including standard dev
 
 ### Running Scripts
 
+
+
+https://www.sec.gov/file/company-tickers
+
+download the json file from above.......
+
+
+
 1. **Clone the repository:**
 
    ```bash
