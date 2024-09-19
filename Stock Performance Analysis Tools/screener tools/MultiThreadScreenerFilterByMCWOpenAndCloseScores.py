@@ -14,7 +14,7 @@ def load_tickers(file_path):
 
 def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
-    hist = stock.history(period='6mo')  # Get data for the past 6 months
+    hist = stock.history(period='1mo')  # Get data for the past 6 months
     if hist.empty:
         print(f"No data found for {ticker}; possibly delisted or no recent trading activity.")
         return None
