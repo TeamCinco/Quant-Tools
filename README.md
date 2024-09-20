@@ -97,10 +97,4 @@ pip install yfinance pandas numpy matplotlib scipy scikit-learn pandas_datareade
 
 ## Contributing
 
-Feel free to fork this repository and submit pull requests with improvements or additional tools.
-
-## License
-
-[Specify your license here]
-
-This README provides an overview of the repository structure and the tools available. You may want to add more detailed instructions for each tool, installation steps, and any specific usage guidelines as needed.
+Feel free to fork this repository and submit pull requests with improvements or additional tools/criticism
