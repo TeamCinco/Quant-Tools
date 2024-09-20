@@ -177,7 +177,7 @@ def main():
         })
 
     # Save to CSV
-    csv_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\screener 9.19.24\stock_analysis_results.csv"
+    csv_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\screener 9.19.24\stock_analysis_results_9.19.24.csv"
     save_to_csv(csv_data, csv_filename)
     print(f"Data saved to {csv_filename}")
 
