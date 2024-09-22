@@ -1,4 +1,4 @@
-import json 
+import json
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -20,8 +20,8 @@ def load_tickers(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    # Adjust to use 'Ticker' with an uppercase T and handle 'N/A' tickers
-    return {item['Ticker']: item['CIK'] for item in data.values() if item['Ticker'] != "N/A"}
+    return {item['Ticker']: item for item in data.values() if item['Ticker'] != "N/A"}
+
 
 
 def filter_by_market_cap(ticker, size):
@@ -41,7 +41,7 @@ def filter_by_market_cap(ticker, size):
         return True
     else:
         return False
-    
+
 def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
     hist = stock.history(period='6mo')
@@ -55,14 +55,15 @@ def calculate_aroc(hist):
 def log_transform_aroc(aroc):
     return np.log(np.abs(aroc) + 1) * np.sign(aroc)
 
-def process_ticker(ticker, cik, size_filter):
+def process_ticker(ticker, data, size_filter):
     try:
         if not filter_by_market_cap(ticker, size_filter):
             print(f"{ticker} does not match the market cap size '{size_filter}'; skipping.")
             return None
 
         hist = get_stock_data(ticker)
-        if hist is None:
+        if hist is None or hist.empty:
+            print(f"No historical data for {ticker}; skipping.")
             return None
 
         aroc = calculate_aroc(hist)
@@ -78,6 +79,10 @@ def process_ticker(ticker, cik, size_filter):
 
         stock_data = {
             'Ticker': ticker,
+            'CompanyName': data.get('CompanyName', ''),
+            'CIK': data.get('CIK', ''),
+            'SIC': data.get('SIC', ''),
+            'SICDescription': data.get('SICDescription', ''),
             'Date': hist.index[-1].strftime('%Y-%m-%d'),
             'AROC': aroc,
             'Log AROC': log_aroc,
@@ -86,7 +91,7 @@ def process_ticker(ticker, cik, size_filter):
             'Percent Change': percent_change
         }
 
-        print(f"Processed {ticker} (CIK: {cik})")
+        print(f"Processed {ticker} ({data.get('CompanyName', '')})")
         return stock_data, aroc, log_aroc, hist
 
     except Exception as e:
@@ -166,7 +171,7 @@ def plot_trendline_and_std_ranges(hist, mean_aroc, std_deviation, mean_price, st
     plt.grid(True)
 
     # Save and display the plot
-    plt.savefig(r'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_Price_STD.png')
+    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_Price_STD.png')
     print(f"Trendline and standard deviation chart '{ticker}_Price_STD.png' has been created.")
     plt.show()
 
@@ -196,7 +201,7 @@ def plot_performance_with_aroc_std(hist, mean_aroc, std_deviation, ticker):
     plt.grid(True)
     
     # Save and show the plot
-    plt.savefig(r'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_performance_aroc_std_chart.png')
+    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_performance_aroc_std_chart.png')
     print(f"Performance chart with AROC and stds for {ticker} created.")
     plt.show()
     
@@ -207,10 +212,12 @@ def save_to_excel(data, filename):
     ws_neg = wb.active
     ws_neg.title = "Negative Sigma"
     ws_neutral = wb.create_sheet("Neutral Sigma")
-    ws_pos = wb.create_sheet("Positive Sigma")
+    ws_pos = wb.create_sheet("Positive Sigma"
+
+    )
 
     # Write headers to each sheet
-    headers = ['Ticker', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
+    headers = ['Ticker', 'CompanyName', 'CIK', 'SIC', 'SICDescription', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
     ws_neg.append(headers)
     ws_neutral.append(headers)
     ws_pos.append(headers)
@@ -267,25 +274,50 @@ def save_to_excel(data, filename):
     print(f"Data saved to {filename}")
 
 
-# Now modify the main loop to include this function call
 def main():
-    tickers = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json")
+    tickers_data = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json")
     size_filter = input("Enter market cap size to filter by (small, medium, large): ").lower()
-    num_stocks = int(input("Enter the number of stocks to analyze: "))
+    
+    # Let user input a ticker
+    selected_ticker = input("Enter the company ticker you want to analyze: ").upper()
 
-    selected_tickers = random.sample(list(tickers.items()), min(num_stocks, len(tickers)))
+    # Find the industry for the selected ticker
+    selected_data = tickers_data.get(selected_ticker)
+    if not selected_data:
+        print(f"Ticker {selected_ticker} not found.")
+        return
+
+    selected_industry = selected_data.get('SICDescription')
+    if not selected_industry:
+        print(f"No industry found for ticker {selected_ticker}.")
+        return
+
+    print(f"Selected industry for {selected_ticker}: {selected_industry}")
+
+    # Filter companies by the same industry and market cap
+    filtered_tickers = []
+    for ticker, data in tickers_data.items():
+        if data.get('SICDescription') == selected_industry and filter_by_market_cap(ticker, size_filter):
+            filtered_tickers.append((ticker, data))
+
+    if not filtered_tickers:
+        print(f"No companies found in the industry {selected_industry} with market cap {size_filter}.")
+        return
+
+    print(f"Found {len(filtered_tickers)} companies in the same industry and market cap size.")
 
     stock_data_list = []
     aroc_list = []
     log_aroc_list = []
 
+
     with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(process_ticker, ticker, cik, size_filter): ticker for ticker, cik in selected_tickers}
+        futures = {executor.submit(process_ticker, ticker, data, size_filter): ticker for ticker, data in filtered_tickers}
 
         for future in as_completed(futures):
             result = future.result()
             if result is not None:
-                stock_data, aroc, log_aroc, _ = result
+                stock_data, aroc, log_aroc, hist = result
                 stock_data_list.append(stock_data)
                 aroc_list.append(aroc)
                 log_aroc_list.append(log_aroc)
@@ -311,6 +343,10 @@ def main():
         sigma_range = 'Within 1σ' if abs(sigma) <= 1 else ('Within 2σ' if abs(sigma) <= 2 else 'Beyond 2σ')
         excel_data.append({
             'Ticker': stock['Ticker'],
+            'CompanyName': stock['CompanyName'],
+            'CIK': stock['CIK'],
+            'SIC': stock['SIC'],
+            'SICDescription': stock['SICDescription'],
             'Date': stock['Date'],
             'AROC': stock['AROC'],
             'Log AROC': stock['Log AROC'],
@@ -336,7 +372,7 @@ def main():
             break
 
         comparison_hist = get_stock_data(comparison_ticker)
-        if comparison_hist is None:
+        if comparison_hist is None or comparison_hist.empty:
             print(f"No data found for {comparison_ticker}")
             continue
 

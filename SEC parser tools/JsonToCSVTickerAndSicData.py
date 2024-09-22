@@ -4,7 +4,7 @@ from collections import defaultdict
 from tqdm import tqdm
 
 # Paths for input JSON file and output Excel file
-input_file = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\combined_data.json"
+input_file = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json"
 output_excel = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\industry_data.xlsx"
 
 # Function to clean sheet names (remove invalid Excel characters)
