@@ -20,8 +20,7 @@ def load_tickers(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
 
-    # Adjust to use 'Ticker' with an uppercase T and handle 'N/A' tickers
-    return {item['Ticker']: item['CIK'] for item in data.values() if item['Ticker'] != "N/A"}
+    return {item['Ticker']: item for item in data.values() if item['Ticker'] != "N/A"}
 
 
 def filter_by_market_cap(ticker, size):
@@ -55,14 +54,15 @@ def calculate_aroc(hist):
 def log_transform_aroc(aroc):
     return np.log(np.abs(aroc) + 1) * np.sign(aroc)
 
-def process_ticker(ticker, cik, size_filter):
+def process_ticker(ticker, data, size_filter):
     try:
         if not filter_by_market_cap(ticker, size_filter):
             print(f"{ticker} does not match the market cap size '{size_filter}'; skipping.")
             return None
 
         hist = get_stock_data(ticker)
-        if hist is None:
+        if hist is None or hist.empty:
+            print(f"No historical data for {ticker}; skipping.")
             return None
 
         aroc = calculate_aroc(hist)
@@ -78,6 +78,10 @@ def process_ticker(ticker, cik, size_filter):
 
         stock_data = {
             'Ticker': ticker,
+            'CompanyName': data.get('CompanyName', ''),
+            'CIK': data.get('CIK', ''),
+            'SIC': data.get('SIC', ''),
+            'SICDescription': data.get('SICDescription', ''),
             'Date': hist.index[-1].strftime('%Y-%m-%d'),
             'AROC': aroc,
             'Log AROC': log_aroc,
@@ -86,7 +90,7 @@ def process_ticker(ticker, cik, size_filter):
             'Percent Change': percent_change
         }
 
-        print(f"Processed {ticker} (CIK: {cik})")
+        print(f"Processed {ticker} ({data.get('CompanyName', '')})")
         return stock_data, aroc, log_aroc, hist
 
     except Exception as e:
@@ -95,7 +99,7 @@ def process_ticker(ticker, cik, size_filter):
         else:
             print(f"Error processing {ticker}: {e}")
         return None
-
+    
 def plot_aroc_bell_curve(aroc_list, log_aroc_list):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 6))
     
@@ -210,7 +214,7 @@ def save_to_excel(data, filename):
     ws_pos = wb.create_sheet("Positive Sigma")
 
     # Write headers to each sheet
-    headers = ['Ticker', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
+    headers = ['Ticker', 'CompanyName', 'CIK', 'SIC', 'SICDescription', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
     ws_neg.append(headers)
     ws_neutral.append(headers)
     ws_pos.append(headers)
@@ -311,6 +315,10 @@ def main():
         sigma_range = 'Within 1σ' if abs(sigma) <= 1 else ('Within 2σ' if abs(sigma) <= 2 else 'Beyond 2σ')
         excel_data.append({
             'Ticker': stock['Ticker'],
+            'CompanyName': stock['CompanyName'],
+            'CIK': stock['CIK'],
+            'SIC': stock['SIC'],
+            'SICDescription': stock['SICDescription'],
             'Date': stock['Date'],
             'AROC': stock['AROC'],
             'Log AROC': stock['Log AROC'],
@@ -324,7 +332,7 @@ def main():
         })
 
     # Save to Excel
-    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\LargeCap_Analysis.xlsx"
+    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\ALL_LargeCap_AnalysisTEST.xlsx"
     save_to_excel(excel_data, excel_filename)
 
     # Plot AROC bell curves
