@@ -1,68 +1,53 @@
 import json
+import pandas as pd
+from collections import defaultdict
 from tqdm import tqdm
-from openpyxl import Workbook
-import re
-# Paths for input and output files
-tickers_file = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json"
-output_excel = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\ticker_CIK_SIC.xlsx"
 
-# Step 1: Load the ticker data from tickers.json
-print("Step 1: Loading ticker data...")
-try:
-    with tqdm(total=1, desc="Loading ticker data", leave=True, unit="task") as pbar:
-        with open(tickers_file, 'r', encoding='utf-8') as f:
-            ticker_data = json.load(f)
-        pbar.update(1)
-except Exception as e:
-    print(f"Error loading ticker data: {e}")
-    exit()
+# Paths for input JSON file and output Excel file
+input_file = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\combined_data.json"
+output_excel = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\industry_data.xlsx"
 
-# Step 2: Organize the data by SIC Description
-print("Step 2: Organizing data by SIC Description...")
-sic_data = {}
-try:
-    with tqdm(total=len(ticker_data), desc="Organizing data", leave=True, unit="row") as pbar:
-        for key, value in ticker_data.items():
-            sic_desc = value.get("SICDescription", "Unknown SIC Description")
-            row = {
-                "Ticker": value.get("ticker", "N/A"),
-                "SIC": value.get("SIC", "N/A"),
-                "CompanyName": value.get("CompanyName", "N/A")
-            }
-            if sic_desc not in sic_data:
-                sic_data[sic_desc] = []
-            sic_data[sic_desc].append(row)
-            pbar.update(1)
-except Exception as e:
-    print(f"Error organizing data: {e}")
-    exit()
+# Function to clean sheet names (remove invalid Excel characters)
+def clean_sheet_name(sheet_name):
+    invalid_chars = '[]:*?/\\'
+    for char in invalid_chars:
+        sheet_name = sheet_name.replace(char, "")
+    return sheet_name[:31]  # Excel sheet name limit is 31 characters
 
-# Function to sanitize sheet names by removing invalid characters
-def sanitize_sheet_name(name):
-    # Replace any invalid character with an underscore
-    return re.sub(r'[\/:*?"<>|]', '_', name)
+# Initialize a dictionary to hold the data grouped by SICDescription (industry)
+industry_data = defaultdict(list)
 
-# Step 3: Writing the organized data to an Excel file with multiple sheets
-print("Step 3: Writing data to Excel sheets by SIC Description...")
-try:
-    wb = Workbook()
-    for idx, (sic_desc, data_rows) in enumerate(tqdm(sic_data.items(), desc="Writing sheets", leave=True, unit="sheet")):
-        sanitized_sic_desc = sanitize_sheet_name(sic_desc[:31])  # Sanitize and truncate to 31 characters
-        if idx == 0:
-            ws = wb.active
-            ws.title = sanitized_sic_desc  # Set title of the first (active) sheet
+# Read the combined_data.json file
+print("Loading data from combined_data.json...")
+with open(input_file, 'r') as f:
+    data = json.load(f)
+
+# Group the data by SICDescription
+print("Grouping data by industry (SICDescription)...")
+for record in tqdm(data.values(), desc="Processing records", unit="record"):
+    sic_description = record.get("SICDescription", "N/A")
+    industry_data[sic_description].append({
+        "CIK": record.get("CIK", "N/A"),
+        "CompanyName": record.get("CompanyName", "N/A"),
+        "Ticker": record.get("Ticker", "N/A"),
+        "SIC": record.get("SIC", "N/A"),
+    })
+
+# Create a Pandas Excel writer object
+print("Writing data to Excel...")
+with pd.ExcelWriter(output_excel, engine='xlsxwriter') as writer:
+    # Loop through each industry and write to a separate sheet
+    for industry, records in tqdm(industry_data.items(), desc="Writing to sheets", unit="sheet"):
+        if industry == "N/A":
+            sheet_name = "Unknown Industry"
         else:
-            ws = wb.create_sheet(title=sanitized_sic_desc)
+            # Clean the sheet name
+            sheet_name = clean_sheet_name(industry)
+        
+        # Convert the list of records for this industry to a DataFrame
+        df = pd.DataFrame(records)
+        
+        # Write the DataFrame to a new sheet in the Excel file
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-        # Write headers
-        ws.append(["Ticker", "SIC", "CompanyName"])
-
-        # Write data rows
-        for row in data_rows:
-            ws.append([row["Ticker"], row["SIC"], row["CompanyName"]])
-
-    # Save the Excel file
-    wb.save(output_excel)
-    print(f"Data successfully written to {output_excel}")
-except Exception as e:
-    print(f"Error writing to Excel file: {e}")
+print(f"Data successfully written to {output_excel}")

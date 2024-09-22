@@ -19,7 +19,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 def load_tickers(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
-    return {item['ticker']: item['cik_str'] for item in data.values()}
+
+    # Adjust to use 'Ticker' with an uppercase T and handle 'N/A' tickers
+    return {item['Ticker']: item['CIK'] for item in data.values() if item['Ticker'] != "N/A"}
+
 
 def filter_by_market_cap(ticker, size):
     stock = yf.Ticker(ticker)
@@ -266,7 +269,7 @@ def save_to_excel(data, filename):
 
 # Now modify the main loop to include this function call
 def main():
-    tickers = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json")
+    tickers = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\combined_data.json")
     size_filter = input("Enter market cap size to filter by (small, medium, large): ").lower()
     num_stocks = int(input("Enter the number of stocks to analyze: "))
 
