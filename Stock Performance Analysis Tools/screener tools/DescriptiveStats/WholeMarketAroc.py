@@ -11,7 +11,7 @@ import sys
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Color
 from openpyxl.styles.differential import DifferentialStyle
-from openpyxl.formatting.rule import Rule, ColorScale, FormatObject
+from openpyxl.formatting.rule import Rule, ColorScale, FormatObject, ColorScaleRule
 
 # Set default encoding to UTF-8 for console output
 sys.stdout.reconfigure(encoding='utf-8')
@@ -23,23 +23,6 @@ def load_tickers(file_path):
     return {item['Ticker']: item for item in data.values() if item['Ticker'] != "N/A"}
 
 
-def filter_by_market_cap(ticker, size):
-    stock = yf.Ticker(ticker)
-    info = stock.info
-    market_cap = info.get('marketCap', None)
-
-    if market_cap is None:
-        print(f"Market cap data not available for {ticker}.")
-        return False
-
-    if size == 'small' and market_cap <= 2e9:
-        return True
-    elif size == 'medium' and 2e9 < market_cap <= 10e9:
-        return True
-    elif size == 'large' and market_cap > 10e9:
-        return True
-    else:
-        return False
     
 def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
@@ -54,12 +37,8 @@ def calculate_aroc(hist):
 def log_transform_aroc(aroc):
     return np.log(np.abs(aroc) + 1) * np.sign(aroc)
 
-def process_ticker(ticker, data, size_filter):
+def process_ticker(ticker, data):
     try:
-        if not filter_by_market_cap(ticker, size_filter):
-            print(f"{ticker} does not match the market cap size '{size_filter}'; skipping.")
-            return None
-
         hist = get_stock_data(ticker)
         if hist is None or hist.empty:
             print(f"No historical data for {ticker}; skipping.")
@@ -82,6 +61,7 @@ def process_ticker(ticker, data, size_filter):
             'CIK': data.get('CIK', ''),
             'SIC': data.get('SIC', ''),
             'SICDescription': data.get('SICDescription', ''),
+            'OwnerOrg': data.get('OwnerOrg', 'N/A'),  # Added OwnerOrg column
             'Date': hist.index[-1].strftime('%Y-%m-%d'),
             'AROC': aroc,
             'Log AROC': log_aroc,
@@ -94,11 +74,9 @@ def process_ticker(ticker, data, size_filter):
         return stock_data, aroc, log_aroc, hist
 
     except Exception as e:
-        if '404' in str(e):
-            print(f"Error processing {ticker}: {e} (Data not found)")
-        else:
-            print(f"Error processing {ticker}: {e}")
+        print(f"Error processing {ticker}: {e}")
         return None
+
     
 def plot_aroc_bell_curve(aroc_list, log_aroc_list):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 6))
@@ -204,6 +182,8 @@ def plot_performance_with_aroc_std(hist, mean_aroc, std_deviation, ticker):
     print(f"Performance chart with AROC and stds for {ticker} created.")
     plt.show()
     
+
+
 def save_to_excel(data, filename):
     wb = Workbook()
 
@@ -214,7 +194,7 @@ def save_to_excel(data, filename):
     ws_pos = wb.create_sheet("Positive Sigma")
 
     # Write headers to each sheet
-    headers = ['Ticker', 'CompanyName', 'CIK', 'SIC', 'SICDescription', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
+    headers = ['Ticker', 'SICDescription', 'OwnerOrg', 'CompanyName', 'CIK', 'SIC', 'Date', 'AROC', 'Log AROC', 'Sigma', 'Log Sigma', 'Sigma Range', 'Percent Change', 'Start Price', 'End Price', 'Mean AROC']
     ws_neg.append(headers)
     ws_neutral.append(headers)
     ws_pos.append(headers)
@@ -226,7 +206,6 @@ def save_to_excel(data, filename):
     neg_data = []
     neutral_data = []
     pos_data = []
-
     for row in sorted_data:
         if row['Sigma'] < 0:
             neg_data.append(row)
@@ -235,37 +214,55 @@ def save_to_excel(data, filename):
         else:
             pos_data.append(row)
 
-    # Write data to the respective sheets
-    for row in neg_data:
-        ws_neg.append([row[header] for header in headers])
-    for row in neutral_data:
-        ws_neutral.append([row[header] for header in headers])
-    for row in pos_data:
-        ws_pos.append([row[header] for header in headers])
+    # Define fills for negative and positive percent changes
+    red_fill = PatternFill(start_color="FFFFCCCC", end_color="FFFFCCCC", fill_type="solid")
+    green_fill = PatternFill(start_color="FFCCFFCC", end_color="FFCCFFCC", fill_type="solid")
 
-    # Apply conditional formatting
+    # Write data to the respective sheets and apply row formatting based on percent change
+    for sheet, data_set in zip([ws_neg, ws_neutral, ws_pos], [neg_data, neutral_data, pos_data]):
+        for idx, row in enumerate(data_set, start=2):
+            # Append row data
+            sheet.append([row.get(header, 'N/A') for header in headers])
 
-    # Red gradient for negative sigma (Sheet 1)
-    red_start = "FFFF0000"
-    red_end = "FFFF9999"
-    red_scale = ColorScale(cfvo=[FormatObject(type='num', val=-3), FormatObject(type='num', val=0)],
-                           color=[red_start, red_end])
-    red_rule = Rule(type='colorScale', colorScale=red_scale)
-    ws_neg.conditional_formatting.add(f"E2:E{len(neg_data)+1}", red_rule)
+            # Apply red fill for negative percent change, green fill for positive percent change
+            percent_change = row.get('Percent Change', 0)
+            if percent_change < 0:
+                fill = red_fill
+            else:
+                fill = green_fill
 
-    # Yellow fill for neutral sigma (Sheet 2)
-    yellow_fill = PatternFill(start_color="FFFFFF00", end_color="FFFFFF00", fill_type="solid")
-    yellow_style = DifferentialStyle(fill=yellow_fill)
-    yellow_rule = Rule(type="cellIs", operator="between", formula=["0", "1"], dxf=yellow_style)
-    ws_neutral.conditional_formatting.add(f"E2:E{len(neutral_data)+1}", yellow_rule)
+            # Apply fill to the entire row except the Sigma column
+            for col in range(1, len(headers) + 1):  # len(headers) + 1 to cover all columns
+                if col != 10:  # Skip 'Sigma' column which is the 10th column (index 9)
+                    sheet.cell(row=idx, column=col).fill = fill
 
-    # Green gradient for positive sigma (Sheet 3)
-    green_start = "FF00FF00"
-    green_end = "FF99FF99"
-    green_scale = ColorScale(cfvo=[FormatObject(type='num', val=1), FormatObject(type='num', val=3)],
-                             color=[green_start, green_end])
-    green_rule = Rule(type='colorScale', colorScale=green_scale)
-    ws_pos.conditional_formatting.add(f"E2:E{len(pos_data)+1}", green_rule)
+    # Apply conditional formatting to the Sigma column based on its values
+    for sheet, data_set in zip([ws_neg, ws_neutral, ws_pos], [neg_data, neutral_data, pos_data]):
+        if len(data_set) > 0:
+            if sheet.title == "Negative Sigma":
+                # Apply negative sigma gradient (dark red to light red)
+                sigma_rule = ColorScaleRule(
+                    start_type='min', start_color='FF0000',
+                    mid_type='percentile', mid_value=50, mid_color='FF9999',
+                    end_type='max', end_color='FFFFFF'
+                )
+            elif sheet.title == "Neutral Sigma":
+                # Apply neutral sigma gradient (yellow to green)
+                sigma_rule = ColorScaleRule(
+                    start_type='min', start_color='FFFF00',
+                    mid_type='percentile', mid_value=50, mid_color='FFFFFF',
+                    end_type='max', end_color='00FF00'
+                )
+            else:
+                # Apply positive sigma gradient (light green to dark green)
+                sigma_rule = ColorScaleRule(
+                    start_type='min', start_color='FFFFFF',
+                    mid_type='percentile', mid_value=50, mid_color='99FF99',
+                    end_type='max', end_color='00FF00'
+                )
+
+            # Apply the gradient to the 'Sigma' column (column J, index 10)
+            sheet.conditional_formatting.add(f'J2:J{len(data_set) + 1}', sigma_rule)
 
     wb.save(filename)
     print(f"Data saved to {filename}")
@@ -274,17 +271,16 @@ def save_to_excel(data, filename):
 # Now modify the main loop to include this function call
 def main():
     tickers = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json")
-    size_filter = input("Enter market cap size to filter by (small, medium, large): ").lower()
     num_stocks = int(input("Enter the number of stocks to analyze: "))
 
-    selected_tickers = random.sample(list(tickers.items()), min(num_stocks, len(tickers)))
+    selected_tickers = list(tickers.items())[:num_stocks]
 
     stock_data_list = []
     aroc_list = []
     log_aroc_list = []
 
     with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = {executor.submit(process_ticker, ticker, cik, size_filter): ticker for ticker, cik in selected_tickers}
+        futures = {executor.submit(process_ticker, ticker, cik): ticker for ticker, cik in selected_tickers}
 
         for future in as_completed(futures):
             result = future.result()
@@ -332,9 +328,9 @@ def main():
         })
 
     # Save to Excel
-    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\ALL_LargeCap_AnalysisTEST.xlsx"
+    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\ALL_LargeCap_Analysistesttt9.22.xlsx"
     save_to_excel(excel_data, excel_filename)
-
+    
     # Plot AROC bell curves
     plot_aroc_bell_curve(aroc_list, log_aroc_list)
 

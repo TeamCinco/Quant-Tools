@@ -60,13 +60,15 @@ def clean_column_name(column_name):
         cleaned_name = 'col_' + cleaned_name
     return cleaned_name
 
-def create_excel_file(time_series_data, file_path):
+def create_excel_file(time_series_data, tickers_data, file_path):
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         for statement in ['balance_sheet', 'income_statement', 'cash_flow']:
             all_data = []
             for ticker, data in time_series_data.items():
                 df = data[statement]
                 df['Ticker'] = ticker
+                df['OwnerOrg'] = tickers_data.get(ticker.upper(), {}).get('OwnerOrg', 'N/A')  # Corrected 'OwnerOrg' field
+
                 # Clean column names
                 df.columns = [clean_column_name(col) for col in df.columns]
                 all_data.append(df)
@@ -75,8 +77,8 @@ def create_excel_file(time_series_data, file_path):
             combined_df = combined_df.reset_index()
             combined_df = combined_df.rename(columns={'index': 'Date'})
             
-            # Reorder columns to have Ticker and Date first
-            columns = ['Ticker', 'Date'] + [col for col in combined_df.columns if col not in ['Ticker', 'Date']]
+            # Reorder columns to have Ticker, OwnerOrg, and Date first
+            columns = ['Ticker', 'OwnerOrg', 'Date'] + [col for col in combined_df.columns if col not in ['Ticker', 'OwnerOrg', 'Date']]
             combined_df = combined_df[columns]
             
             # Write to Excel
@@ -104,7 +106,7 @@ def main():
 
     # Create Excel file
     excel_file_path = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\IndustryComparison\industry_comparison.xlsx"
-    create_excel_file(financial_data, excel_file_path)
+    create_excel_file(financial_data, tickers_data, excel_file_path)
     print(f"\nExcel file created: {excel_file_path}")
 
 if __name__ == "__main__":
