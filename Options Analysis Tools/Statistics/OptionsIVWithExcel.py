@@ -37,6 +37,10 @@ def plot_implied_volatility_surface(data, title, filename):
     y = np.array(data['timeToExpire'])
     z = np.array(data['impliedVolatility'])
 
+    # Remove any non-positive IV values
+    mask = z > 0
+    x, y, z = x[mask], y[mask], z[mask]
+
     # Create a grid
     xi = np.linspace(x.min(), x.max(), 100)
     yi = np.linspace(y.min(), y.max(), 100)
@@ -44,6 +48,9 @@ def plot_implied_volatility_surface(data, title, filename):
 
     # Interpolate Z values on the grid
     Z = griddata((x, y), z, (X, Y), method='cubic')
+
+    # Set any remaining negative values to NaN to avoid plotting them
+    Z[Z < 0] = np.nan
 
     # Plot the surface
     surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none', alpha=0.8)
@@ -53,15 +60,33 @@ def plot_implied_volatility_surface(data, title, filename):
     ax.set_zlabel('Implied Volatility')
     ax.set_title(title)
 
+    # Set a minimum z-axis value of 0
+    ax.set_zlim(bottom=0)
+
     # Adjust the view angle
     ax.view_init(elev=20, azim=45)
 
     # Add a color bar
     fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
 
-    plt.savefig(filename)
-    plt.show()
+    # Format the axis labels
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: '{:.2f}'.format(val)))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: '{:.2f}'.format(val)))
+    ax.zaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: '{:.2f}'.format(val)))
 
+    # Add a legend explaining the graph
+    legend_text = (
+        "Moneyness: Scale of In-the-Money (< 1), At-the-Money (= 1), Out-of-the-Money (> 1)\n"
+        "Time to Expire: Fraction of a Year\n"
+        "Implied Volatility: Market's Expectation of Volatility"
+    )
+    ax.text2D(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=10,
+              verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', alpha=0.3))
+
+    plt.show()
+    plt.savefig(filename)
+
+    
 def plot_stock_price(ticker):
     stock = yf.Ticker(ticker)
     end_date = datetime.now()

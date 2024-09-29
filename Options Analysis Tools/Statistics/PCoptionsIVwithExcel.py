@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from datetime import datetime, timedelta
 from scipy.interpolate import griddata
-import os
+import pandas as pd
 
 def fetch_available_expirations(ticker):
     stock = yf.Ticker(ticker)
@@ -82,13 +82,9 @@ def plot_implied_volatility_surface(data, title, filename):
     )
     ax.text2D(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=10,
               verticalalignment='top', bbox=dict(boxstyle='round,pad=0.5', alpha=0.3))
-    
-    # Create a 'plots' directory if it doesn't exist
-    os.makedirs('plots', exist_ok=True)
-    
-    # Save the plot
-    plt.savefig(os.path.join('plots', filename))
-    plt.close(fig)  # Close the figure to free up memory
+
+    plt.show()
+    plt.savefig(filename)
 
 def plot_stock_price(ticker):
     stock = yf.Ticker(ticker)
@@ -103,13 +99,15 @@ def plot_stock_price(ticker):
     plt.ylabel('Price')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    
-    # Create a 'plots' directory if it doesn't exist
-    os.makedirs('plots', exist_ok=True)
-    
-    # Save the plot
-    plt.savefig(os.path.join('plots', f'{ticker}_stock_price.png'))
-    plt.close()  # Close the figure to free up memory
+    plt.show()
+
+def save_to_excel(data_calls, data_puts, ticker):
+    with pd.ExcelWriter(rf"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.28.24\{ticker}_options_data.xlsx") as writer:
+        df_calls = pd.DataFrame(data_calls)
+        df_puts = pd.DataFrame(data_puts)
+        df_calls.to_excel(writer, sheet_name="Calls", index=False)
+        df_puts.to_excel(writer, sheet_name="Puts", index=False)
+    print(f"Data has been saved to {ticker}_options_data.xlsx")
 
 def main():
     ticker = input("Enter a ticker symbol: ").upper()
@@ -121,9 +119,9 @@ def main():
     for i, date in enumerate(expiration_dates):
         print(f"{i+1}. {date}")
     
-    start_index = int(input("Enter the number of the start date: ")) - 1
-    end_index = int(input("Enter the number of the end date: ")) - 1
-    
+    start_index = int(input("Enter the number for the start date: ")) - 1
+    end_index = int(input("Enter the number for the end date: ")) - 1
+
     start_date = datetime.strptime(expiration_dates[start_index], "%Y-%m-%d")
     end_date = datetime.strptime(expiration_dates[end_index], "%Y-%m-%d")
 
@@ -133,30 +131,46 @@ def main():
     stock = yf.Ticker(ticker)
     underlying_price = stock.history(period="1d")['Close'].iloc[0]
 
-    for option_type in ['Calls', 'Puts']:
-        data = {
-            'strike': [],
-            'expiration': [],
-            'impliedVolatility': [],
-            'moneyness': [],
-            'timeToExpire': []
-        }
+    data_calls = {
+        'strike': [],
+        'expiration': [],
+        'impliedVolatility': [],
+        'moneyness': [],
+        'timeToExpire': []
+    }
 
-        for date, calls, puts in all_options:
-            options = calls if option_type == 'Calls' else puts
-            data['strike'].extend(options['strike'])
-            data['expiration'].extend([date] * len(options))
-            data['impliedVolatility'].extend(options['impliedVolatility'])
-            data['moneyness'].extend([calculate_moneyness(strike, underlying_price) for strike in options['strike']])
-            data['timeToExpire'].extend([calculate_time_to_expire(date)] * len(options))
+    data_puts = {
+        'strike': [],
+        'expiration': [],
+        'impliedVolatility': [],
+        'moneyness': [],
+        'timeToExpire': []
+    }
 
-        print(f"\nPlotting {option_type} options Implied Volatility Surface...")
-        plot_implied_volatility_surface(data, f'{ticker} {option_type} Implied Volatility Surface', f'{ticker}_{option_type}_IV_surface.png')
+    for date, calls, puts in all_options:
+        data_calls['strike'].extend(calls['strike'])
+        data_calls['expiration'].extend([date] * len(calls))
+        data_calls['impliedVolatility'].extend(calls['impliedVolatility'])
+        data_calls['moneyness'].extend([calculate_moneyness(strike, underlying_price) for strike in calls['strike']])
+        data_calls['timeToExpire'].extend([calculate_time_to_expire(date)] * len(calls))
+
+        data_puts['strike'].extend(puts['strike'])
+        data_puts['expiration'].extend([date] * len(puts))
+        data_puts['impliedVolatility'].extend(puts['impliedVolatility'])
+        data_puts['moneyness'].extend([calculate_moneyness(strike, underlying_price) for strike in puts['strike']])
+        data_puts['timeToExpire'].extend([calculate_time_to_expire(date)] * len(puts))
+
+    print("\nSaving options data to Excel...")
+    save_to_excel(data_calls, data_puts, ticker)
+
+    print("\nPlotting and saving Calls Implied Volatility Surface...")
+    plot_implied_volatility_surface(data_calls, f'{ticker} Calls Implied Volatility Surface', rf"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.28.24\{ticker}_calls_iv_surface.png")
+
+    print("\nPlotting and saving Puts Implied Volatility Surface...")
+    plot_implied_volatility_surface(data_puts, f'{ticker} Puts Implied Volatility Surface', rf"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.28.24\{ticker}_puts_iv_surface.png")
 
     print("\nPlotting stock price for the past 6 months...")
     plot_stock_price(ticker)
-
-    print(f"\nAll plots have been saved in the 'plots' directory.")
 
 if __name__ == "__main__":
     main()
