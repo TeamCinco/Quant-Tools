@@ -5,8 +5,14 @@ from scipy.stats import norm
 from datetime import datetime, timedelta
 
 def get_risk_free_rate():
-    # Return the latest available FEDFUNDS rate from FRED data
-    return 0.048  # 5.33% as of July 2024
+    while True:
+        try:
+            r = float(input("Enter the annual risk-free rate (e.g., enter 5 for 5%): "))
+            r_decimal = r / 100
+            return r_decimal
+        except ValueError:
+            print("Invalid input. Please enter a numerical value.")
+
 
 def get_dividend_yield(ticker):
     try:
@@ -15,13 +21,11 @@ def get_dividend_yield(ticker):
         return 0
 
 def trading_days_to_expiration(expiration_date):
-    now = datetime.now()
-    expiration = datetime.strptime(expiration_date, "%Y-%m-%d") + timedelta(hours=16)
-    
-    seconds_to_expiration = (expiration - now).total_seconds()
-    years_to_expiration = seconds_to_expiration / (252 * 24 * 60 * 60)
-    
-    return max(years_to_expiration, 1/252)
+    now = datetime.now().date()
+    expiration = datetime.strptime(expiration_date, "%Y-%m-%d").date()
+    trading_days = pd.bdate_range(now, expiration).size
+    years_to_expiration = trading_days / 252
+    return max(years_to_expiration, 1 / 252)
 
 def black_scholes_option_price(S, K, T, r, q, sigma, option_type):
     if sigma <= 0 or T <= 0:
