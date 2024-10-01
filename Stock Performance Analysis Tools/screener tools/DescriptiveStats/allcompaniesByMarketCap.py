@@ -165,7 +165,7 @@ def plot_trendline_and_std_ranges(hist, mean_aroc, std_deviation, mean_price, st
     plt.grid(True)
 
     # Save and display the plot
-    plt.savefig(rf'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.23.24\{ticker}_Price_STD.png')
+    plt.savefig(rf'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.30.24\{ticker}_Price_STD.png')
     print(f"Trendline and standard deviation chart '{ticker}_Price_STD.png' has been created.")
     plt.show()
 
@@ -195,7 +195,7 @@ def plot_performance_with_aroc_std(hist, mean_aroc, std_deviation, ticker):
     plt.grid(True)
     
     # Save and show the plot
-    plt.savefig(rf'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.23.24\{ticker}_performance_aroc_std_chart.png')
+    plt.savefig(rf'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.30.24\{ticker}_performance_aroc_std_chart.png')
     print(f"Performance chart with AROC and stds for {ticker} created.")
     plt.show()
     
@@ -351,7 +351,7 @@ def main():
         })
 
     # Save to Excel
-    excel_filename = rf"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.23.24\{size_filter}_Cap_Analysis3d.xlsx"
+    excel_filename = rf"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.30.24\{size_filter}_Cap_Analysis3d.xlsx"
     save_to_excel(excel_data, excel_filename)
     
     def plot_aroc_bell_curve(aroc_list, log_aroc_list):
@@ -390,7 +390,7 @@ def main():
         ax2.grid(True)
         
         plt.tight_layout()
-        output_dir = r"C:/Users/cinco/Desktop/DATA FOR SCRIPTS/Results/9.23.24"
+        output_dir = r"C:/Users/cinco/Desktop/DATA FOR SCRIPTS/Results/9.30.24"
         os.makedirs(output_dir, exist_ok=True)  # This will create the directory if it doesn't exist
 
         path = rf"{output_dir}/{size_filter}_aroc_bell_curves3d.png"
