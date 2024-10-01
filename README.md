@@ -1,4 +1,3 @@
-Here's a README for the repo based on the code you've provided:
 
 # Quant-Tools
 
