@@ -137,7 +137,7 @@ def plot_aroc_bell_curve(aroc_list, log_aroc_list):
     ax2.grid(True)
     
     plt.tight_layout()
-    plt.savefig(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\LargeCaparoc_bell_curves.png")
+    plt.savefig(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\10.2.24\LargeCaparoc_bell_curves.png")
     print("AROC bell curve charts 'aroc_bell_curves.png' have been created.")
     plt.show()
 
@@ -171,7 +171,7 @@ def plot_trendline_and_std_ranges(hist, mean_aroc, std_deviation, mean_price, st
     plt.grid(True)
 
     # Save and display the plot
-    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_Price_STD.png')
+    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\10.2.24\{ticker}_Price_STD.png')
     print(f"Trendline and standard deviation chart '{ticker}_Price_STD.png' has been created.")
     plt.show()
 
@@ -201,7 +201,7 @@ def plot_performance_with_aroc_std(hist, mean_aroc, std_deviation, ticker):
     plt.grid(True)
     
     # Save and show the plot
-    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\{ticker}_performance_aroc_std_chart.png')
+    plt.savefig(fr'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\10.2.24\{ticker}_performance_aroc_std_chart.png')
     print(f"Performance chart with AROC and stds for {ticker} created.")
     plt.show()
     
@@ -360,7 +360,7 @@ def main():
         })
 
     # Save to Excel
-    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.22.24\LargeCap_Analysis.xlsx"
+    excel_filename = r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\10.2.24\LargeCap_Analysis.xlsx"
     save_to_excel(excel_data, excel_filename)
 
     # Plot AROC bell curves
