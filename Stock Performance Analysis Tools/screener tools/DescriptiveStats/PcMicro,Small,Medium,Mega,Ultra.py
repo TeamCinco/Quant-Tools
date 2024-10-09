@@ -282,7 +282,7 @@ def save_to_excel(data, filename):
     print(f"Data saved to {filename}")
 
 def main():
-    tickers = load_tickers('/Users/jazzhashzzz/Desktop/data for scripts/tickers and rates/tickers.json')
+    tickers = load_tickers(r"C:\Users\cinco\Desktop\DATA FOR SCRIPTS\FILES FOR SCRIPTS\TICKERs\tickers.json")
     size_filter = input("Enter market cap size to filter by (micro, small, mid, large, mega, ultra): ").lower()
     
     # Ask the user for the number of days
