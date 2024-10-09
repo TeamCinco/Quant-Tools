@@ -165,7 +165,7 @@ def plot_trendline_and_std_ranges(hist, mean_aroc, std_deviation, mean_price, st
     plt.grid(True)
 
     # Save and display the plot
-    plt.savefig(rf'C:\Users\cinco\Desktop\DATA FOR SCRIPTS\Results\9.30.24\{ticker}_Price_STD.png')
+    plt.savefig(f'/Users/jazzhashzzz/Desktop/data for scripts/results/screener/10.7.24/{ticker}_Price_STD.png')
     print(f"Trendline and standard deviation chart '{ticker}_Price_STD.png' has been created.")
     plt.show()
 
