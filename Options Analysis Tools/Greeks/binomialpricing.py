@@ -108,6 +108,8 @@ def main():
         try:
             ticker = input("Enter the stock ticker: ").upper()
             S, sigma, r = get_stock_data(ticker)
+            print(f"\nCurrent stock price for {ticker}: ${S:.2f}")  # Add this line
+            
             exp_dates, option_chain = get_options_data(ticker)
             
             if not exp_dates:
@@ -143,10 +145,18 @@ def main():
             print("Strike | Call Bid | Call Ask | Put Bid | Put Ask")
             print("------------------------------------------------")
             for strike in relevant_strikes:
-                call_data = options.calls[options.calls['strike'] == strike].iloc[0]
-                put_data = options.puts[options.puts['strike'] == strike].iloc[0]
-                print(f"${strike:<6.2f} | ${call_data['bid']:<8.2f} | ${call_data['ask']:<8.2f} | ${put_data['bid']:<7.2f} | ${put_data['ask']:.2f}")
-
+                try:
+                    call_data = options.calls[options.calls['strike'] == strike]
+                    put_data = options.puts[options.puts['strike'] == strike]
+                    
+                    if not call_data.empty and not put_data.empty:
+                        call_row = call_data.iloc[0]
+                        put_row = put_data.iloc[0]
+                        print(f"${strike:<6.2f} | ${call_row['bid']:<8.2f} | ${call_row['ask']:<8.2f} | ${put_row['bid']:<7.2f} | ${put_row['ask']:.2f}")
+                    else:
+                        print(f"${strike:<6.2f} | No data available")
+                except Exception as e:
+                    print(f"${strike:<6.2f} | No data available")
             print("\nTheoretical Option Prices for Selected Strike:")
             print("Stock Price | Call Price | Put Price")
             print("-------------------------------------")
